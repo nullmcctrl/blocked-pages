@@ -172,4 +172,69 @@
     </div>
 </body>
                   </html>
+<script>
+// 1. Define your map of ISPs and their respective support URLs
+const ispDatabase = {
+    "pldt": {
+        contact: "https://pldthome.com",
+        report: "https://pldthome.com/report-an-issue"
+    },
+    "globe": {
+        contact: "https://globe.com.ph",
+        report: "https://globe.com.ph/report-a-problem"
+    },
+    "converge": {
+        contact: "https://convergeict.com",
+        report: "https://convergeict.com"
+    },
+    "smart": {
+        contact: "https://smart.com.ph",
+        report: "https://smart.com.ph/contact-us"
+    }
+};
 
+// 2. Fallbacks if the ISP is unknown or lookup fails
+const fallbacks = {
+    contact: "https://google.com",
+    report: "https://google.com"
+};
+
+function redirectToISP(actionType) {
+    // Show a loading state visually so the user knows something is happening
+    document.body.style.cursor = 'wait';
+
+    // Fetch the user's network info using a fast IP API
+    fetch('https://ipapi.co')
+        .then(response => response.json())
+        .then(data => {
+            document.body.style.cursor = 'default';
+            
+            if (data && data.org) {
+                const userOrg = data.org.toLowerCase();
+                let matchedISP = null;
+
+                // Search database for a matching keyword
+                for (const key in ispDatabase) {
+                    if (userOrg.includes(key)) {
+                        matchedISP = ispDatabase[key];
+                        break;
+                    }
+                }
+
+                // Redirect to the matched ISP page
+                if (matchedISP && matchedISP[actionType]) {
+                    window.location.href = matchedISP[actionType];
+                    return;
+                }
+            }
+            
+            // If no match found in database, send to fallback
+            window.location.href = fallbacks[actionType];
+        })
+        .catch(() => {
+            // If network/API fails entirely, send to fallback immediately
+            document.body.style.cursor = 'default';
+            window.location.href = fallbacks[actionType];
+        });
+}
+</script>
